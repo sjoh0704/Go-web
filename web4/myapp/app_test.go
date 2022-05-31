@@ -1,9 +1,12 @@
 package myapp
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 
 	"testing"
 
@@ -25,7 +28,7 @@ func TestIndex(t *testing.T){
 
 }
 
-
+// GET /users
 func TestUsersHandler(t *testing.T){
 	assert := assert.New(t)
 
@@ -40,6 +43,7 @@ func TestUsersHandler(t *testing.T){
 	assert.Contains(string(data), "Get user info") // Get user info가 포함되어 있는 데이터인지 체크 =>
 }
 
+// GET /users/id
 func TestUsersGetInfoHandler(t *testing.T){
 	assert := assert.New(t)
 
@@ -51,6 +55,28 @@ func TestUsersGetInfoHandler(t *testing.T){
 	assert.Equal(http.StatusOK, res.StatusCode)
 
 	data, _ := ioutil.ReadAll(res.Body)
-	assert.Contains(string(data), "user id: 10")
+	assert.Contains(string(data), "No user id: 10")
+}
+
+// POST /users
+
+func TestCreateUser(t *testing.T){
+	assert := assert.New(t)
+	ts := httptest.NewServer(NewHandler()) // mux가 인자로 들어감 
+	defer ts.Close()
+
+	res, err := http.Post(ts.URL + "/users" , "application/json",
+	strings.NewReader(`{"first_name": "seung", "last_name": "oh", "email": "example.com"}`))
+
+	assert.NoError(err)
+	assert.Equal(http.StatusCreated, res.StatusCode)
+	
+	user := new(User)
+	err = json.NewDecoder(res.Body).Decode(user)
+	assert.NoError(err)
+	assert.Equal("seung", user.FirstName)
+	assert.Equal("oh", user.LastName)
+	assert.Equal("example.com", user.Email)
+	fmt.Println("user_id", user.ID)
 
 }

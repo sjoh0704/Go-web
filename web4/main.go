@@ -1,5 +1,9 @@
-// rest api + test 
-// GET /users/10
+// Rest API 예제
+// TDD
+// user 저장은 map을 통해서 함, DB 필요 X
+// 특정 유저 정보 얻기: GET /users/id
+// 유저 생성: POST /users
+
 
 package main
 
