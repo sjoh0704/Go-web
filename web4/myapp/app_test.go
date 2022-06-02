@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -79,4 +80,21 @@ func TestCreateUser(t *testing.T){
 	assert.Equal("example.com", user.Email)
 	fmt.Println("user_id", user.ID)
 
+}
+
+func TestDeleteUser(t *testing.T){
+	assert := assert.New(t)
+	ts := httptest.NewServer(NewHandler()) 
+	defer ts.Close()
+	req, _ := http.NewRequest("DELETE", ts.URL + "/users/1", nil)
+	res, err := http.DefaultClient.Do(req)
+	assert.NoError(err)
+	assert.Equal(http.StatusOK, res.StatusCode)
+
+	// 잠시 어떤 데이터가 찍히는지 확인 
+	data, _ := ioutil.ReadAll(res.Body)
+	log.Print(string(data))
+	// getUserInfo가 호출되었음
+	
+	// assert.Contains(string(data), "No User id: 1")
 }

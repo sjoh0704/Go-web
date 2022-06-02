@@ -54,6 +54,7 @@ func usersGetInfoHandler(w http.ResponseWriter, r *http.Request){
 
 	// user가 없을 때 
 	w.WriteHeader(http.StatusOK)
+	w.Header().Add("content-type", "application/json")
 	fmt.Fprintf(w, "No user id: %d", id)
 
 }
@@ -80,6 +81,32 @@ func createUserHandler(w http.ResponseWriter, r *http.Request){
 	fmt.Fprint(w, string(data))
 }
 
+func DeleteUserHandler(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r) // vars안에 id값이 있음 
+	id, err := strconv.Atoi(vars["id"])
+
+	if err != nil{
+		fmt.Fprint(w, err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	_, ok := userMap[id]
+	if !ok{ // 지울 유저가 없으면 
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "No User id: %d", id)
+		return 
+	}
+
+	delete(userMap, id)
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "Deleted User id: %d", id)
+
+	
+
+}
+
+
 
 func NewHandler() http.Handler{
 	userMap = make(map[int]*User) // mapUser 초기화 \
@@ -90,7 +117,8 @@ func NewHandler() http.Handler{
 	mux.HandleFunc("/", indexHandler)
 	mux.HandleFunc("/users", usersHandler).Methods("GET") //고릴라 mux의 기능
 	mux.HandleFunc("/users", createUserHandler).Methods("POST")
-	mux.HandleFunc("/users/{id:[0-9]+}", usersGetInfoHandler) // 고릴라 mux를 사용하면 자동으로 파싱
+	mux.HandleFunc("/users/{id:[0-9]+}", usersGetInfoHandler).Methods("GET") // 고릴라 mux를 사용하면 자동으로 파싱
+	mux.HandleFunc("/users/{id:[0-9]+}", DeleteUserHandler).Methods("DELETE") // 고릴라 mux를 사용하면 자동으로 파싱
 
 
 	return mux
